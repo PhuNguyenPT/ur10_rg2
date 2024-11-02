@@ -1,6 +1,6 @@
 using System;
 using RosMessageTypes.Geometry;
-using RosMessageTypes.NiryoMoveit;
+using RosMessageTypes.NiryoMoveit;  // For NiryoMoveitJointsMsg and NiryoTrajectoryMsg
 using Unity.Robotics.ROSTCPConnector;
 using Unity.Robotics.ROSTCPConnector.ROSGeometry;
 using Unity.Robotics.UrdfImporter;
@@ -9,10 +9,9 @@ using UnityEngine;
 public class SourceDestinationPublisher : MonoBehaviour
 {
     const int k_NumRobotJoints = 6;
-
-	public static readonly string[] LinkNames =
+    public static readonly string[] LinkNames =
     {
-        "robot_base_link/robot_shoulder_link",
+        "ur10e_rg2/robot_base_link/robot_shoulder_link",
         "/robot_upper_arm_link",
         "/robot_forearm_link",
         "/robot_wrist_1_link",
@@ -26,12 +25,13 @@ public class SourceDestinationPublisher : MonoBehaviour
 
     [SerializeField]
     GameObject m_UR10e;
-    
+
     [SerializeField]
     GameObject m_Target;
-    
+
     [SerializeField]
     GameObject m_TargetPlacement;
+
     readonly Quaternion m_PickOrientation = Quaternion.Euler(90, 90, 0);
 
     // Robot Joints
@@ -52,14 +52,15 @@ public class SourceDestinationPublisher : MonoBehaviour
         for (var i = 0; i < k_NumRobotJoints; i++)
         {
             linkName += LinkNames[i];
-            m_JointArticulationBodies[i] = m_NiryoOne.transform.Find(linkName).GetComponent<UrdfJointRevolute>();
+            m_JointArticulationBodies[i] = m_UR10e.transform.Find(linkName).GetComponent<UrdfJointRevolute>();
         }
     }
 
     public void Publish()
     {
         var sourceDestinationMessage = new NiryoMoveitJointsMsg();
-
+        
+        sourceDestinationMessage.joints = new double[k_NumRobotJoints];
         for (var i = 0; i < k_NumRobotJoints; i++)
         {
             sourceDestinationMessage.joints[i] = m_JointArticulationBodies[i].GetPosition();
