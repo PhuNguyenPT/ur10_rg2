@@ -1,6 +1,6 @@
 using System;
 using RosMessageTypes.Geometry;
-using RosMessageTypes.NiryoMoveit;  // For NiryoMoveitJointsMsg and NiryoTrajectoryMsg
+using RosMessageTypes.Ur10eRg2Moveit;
 using Unity.Robotics.ROSTCPConnector;
 using Unity.Robotics.ROSTCPConnector.ROSGeometry;
 using Unity.Robotics.UrdfImporter;
@@ -44,7 +44,8 @@ public class SourceDestinationPublisher : MonoBehaviour
     {
         // Get ROS connection static instance
         m_Ros = ROSConnection.GetOrCreateInstance();
-        m_Ros.RegisterPublisher<NiryoMoveitJointsMsg>(m_TopicName);
+	m_Ros.RegisterPublisher<Ur10eMoveitJointsMsg>(m_TopicName);
+
 
         m_JointArticulationBodies = new UrdfJointRevolute[k_NumRobotJoints];
 
@@ -58,7 +59,7 @@ public class SourceDestinationPublisher : MonoBehaviour
 
     public void Publish()
     {
-        var sourceDestinationMessage = new NiryoMoveitJointsMsg();
+        var sourceDestinationMessage = new Ur10eMoveitJointsMsg();
         
         sourceDestinationMessage.joints = new double[k_NumRobotJoints];
         for (var i = 0; i < k_NumRobotJoints; i++)
