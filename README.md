@@ -42,8 +42,6 @@ Install the following packages through the **Package Manager**:
    - **URDF Importer**  
      URL: `https://github.com/Unity-Technologies/URDF-Importer.git?path=/com.unity.robotics.urdf-importer#v0.5.2`
 
-5. For glTFast: go to the URL `https://github.com/atteneder/glTFast.git`, and follow the installing instructions
-
 ## Important Notes
 <!--
 - For **glTFast**, ensure shader variants are properly included in your builds by following their documentation.
