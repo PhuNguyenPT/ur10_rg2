@@ -11,8 +11,7 @@ public class SourceDestinationPublisher : MonoBehaviour
     const int k_NumRobotJoints = 6;
     public static readonly string[] LinkNames =
     {
-        "world/robot_base_link/robot_base_link_inertia",
-        "/robot_shoulder_link",
+        "world/robot_base_link/robot_base_link_inertia/robot_shoulder_link",
         "/robot_upper_arm_link",
         "/robot_forearm_link",
         "/robot_wrist_1_link",
@@ -41,7 +40,7 @@ public class SourceDestinationPublisher : MonoBehaviour
     // ROS Connector
     ROSConnection m_Ros;
 
-/*    void Start()
+	void Start()
     {
         // Get ROS connection static instance
         m_Ros = ROSConnection.GetOrCreateInstance();
@@ -56,46 +55,59 @@ public class SourceDestinationPublisher : MonoBehaviour
             linkName += LinkNames[i];
             m_JointArticulationBodies[i] = m_UR10e.transform.Find(linkName).GetComponent<UrdfJointRevolute>();
         }
-    }*/
+    }
     
-    	void Start()
+	/*void Start()
 	{
-	    // Get ROS connection static instance
-	    m_Ros = ROSConnection.GetOrCreateInstance();
-	    Debug.Log("m_Ros: " + (m_Ros != null)); // Check if m_Ros is initialized
-	    m_Ros.RegisterPublisher<Ur10eMoveitJointsMsg>(m_TopicName);
+		// Get ROS connection static instance
+		m_Ros = ROSConnection.GetOrCreateInstance();
+		Debug.Log("m_Ros: " + (m_Ros != null)); // Check if m_Ros is initialized
+		m_Ros.RegisterPublisher<Ur10eMoveitJointsMsg>(m_TopicName);
 
-	    // Ensure m_UR10e is assigned in the Inspector
-	    Debug.Log("m_UR10e: " + (m_UR10e != null));
+		// Ensure m_UR10e is assigned in the Inspector
+		Debug.Log("m_UR10e: " + (m_UR10e != null));
 
-	    m_JointArticulationBodies = new UrdfJointRevolute[k_NumRobotJoints];
-	    
-	    var linkName = string.Empty;
-	    for (var i = 0; i < k_NumRobotJoints; i++)
-	    {
-		linkName += LinkNames[i];
-		var joint = m_UR10e.transform.Find(linkName);
+		m_JointArticulationBodies = new UrdfJointRevolute[k_NumRobotJoints];
 		
-		// Check if joint object was found
-		Debug.Log("Link " + LinkNames[i] + " found: " + (joint != null));
-		
-		if (joint != null)
+		var linkName = string.Empty;
+		for (var i = 0; i < k_NumRobotJoints; i++)
 		{
-		    m_JointArticulationBodies[i] = joint.GetComponent<UrdfJointRevolute>();
-		    // Check if the component was attached
-		    Debug.Log("UrdfJointRevolute for link " + LinkNames[i] + ": " + (m_JointArticulationBodies[i] != null));
+			linkName += LinkNames[i];
+			var joint = m_UR10e.transform.Find(linkName);
+			
+			// Check if joint object was found
+			Debug.Log("Link " + LinkNames[i] + " found: " + (joint != null));
+			
+			if (joint != null)
+			{
+				m_JointArticulationBodies[i] = joint.GetComponent<UrdfJointRevolute>();
+				// Check if the component was attached
+				Debug.Log("UrdfJointRevolute for link " + LinkNames[i] + ": " + (m_JointArticulationBodies[i] != null));
+			}
+			else
+			{
+				Debug.LogWarning("Link " + LinkNames[i] + " not found in m_UR10e.");
+			}
 		}
-		else
-		{
-		    Debug.LogWarning("Link " + LinkNames[i] + " not found in m_UR10e.");
-		}
-	    }
-	}
+	}*/
 
 
     public void Publish()
     {
         var sourceDestinationMessage = new Ur10eMoveitJointsMsg();
+        
+        for (var i = 0; i < k_NumRobotJoints; i++) 
+		{
+			if (m_JointArticulationBodies[i] != null)
+			{
+				sourceDestinationMessage.joints[i] = m_JointArticulationBodies[i].GetPosition();
+			}
+			else
+			{
+				Debug.LogError("Joint at index " + i + " is null. Please check joint setup.");
+			}
+		}
+
         
         sourceDestinationMessage.joints = new double[k_NumRobotJoints];
         for (var i = 0; i < k_NumRobotJoints; i++)
