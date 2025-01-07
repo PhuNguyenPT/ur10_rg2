@@ -176,7 +176,7 @@ public class TrajectoryPlanner : MonoBehaviour
     {
         // Set the target position to close the gripper
         var drive = m_GripperJoint.xDrive;
-        drive.target = -0.5f; // Adjust this value based on your gripper's range
+        drive.target = -0.3f; // Adjust this value based on your gripper's range
         m_GripperJoint.xDrive = drive;
         Debug.Log("Closing gripper...");
     }
