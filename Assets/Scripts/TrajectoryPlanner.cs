@@ -16,7 +16,7 @@ public class TrajectoryPlanner : MonoBehaviour
 
     // Variables required for ROS communication
     [SerializeField]
-    string m_RosServiceName = "ur10e_moveit";
+    string m_RosServiceName = "ur10e_rg2_moveit";
     public string RosServiceName { get => m_RosServiceName; set => m_RosServiceName = value; }
 
     [SerializeField]
