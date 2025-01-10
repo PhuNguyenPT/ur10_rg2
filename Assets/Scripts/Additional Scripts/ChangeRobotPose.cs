@@ -15,16 +15,16 @@ public class ChangeRobotPose : MonoBehaviour
     {
         // Define the desired rotation for each joint in local space
         if (robotShoulderLink != null)
-            robotShoulderLink.localRotation = Quaternion.Euler(0, 0, 0);
+            robotShoulderLink.localRotation = Quaternion.Euler(0, 90, 0);
             
         if (robotUpperArmLink != null)
-            robotUpperArmLink.localRotation = Quaternion.Euler(70, 0, -90);
+            robotUpperArmLink.localRotation = Quaternion.Euler(60, 0, -90);
             
         if (robotForearmLink != null)
-            robotForearmLink.localRotation = Quaternion.Euler(0, 0, 0);
+            robotForearmLink.localRotation = Quaternion.Euler(0, -120, 0);
             
         if (robotWrist1Link != null)
-            robotWrist1Link.localRotation = Quaternion.Euler(0, -20, 0);
+            robotWrist1Link.localRotation = Quaternion.Euler(0, 60, 0);
             
         if (robotWrist2Link != null)
             robotWrist2Link.localRotation = Quaternion.Euler(-90, 0, -90);
