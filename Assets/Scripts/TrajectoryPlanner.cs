@@ -43,24 +43,74 @@ public class TrajectoryPlanner : MonoBehaviour
     /// <summary>
     ///     Find all robot joints in Awake() and add them to the jointArticulationBodies array.
     /// </summary>
+    // void Start()
+    // {
+    //     // Get ROS connection static instance
+    //     m_Ros = ROSConnection.GetOrCreateInstance();
+    //     m_Ros.RegisterRosService<MoverServiceRequest, MoverServiceResponse>(m_RosServiceName);
+
+    //     m_JointArticulationBodies = new ArticulationBody[k_NumRobotJoints];
+
+    //     var linkName = string.Empty;
+    //     for (var i = 0; i < k_NumRobotJoints; i++)
+    //     {
+    //         linkName += SourceDestinationPublisher.LinkNames[i];
+    //         m_JointArticulationBodies[i] = m_UR10e.transform.Find(linkName).GetComponent<ArticulationBody>();
+    //     }
+
+    //     // Find the gripper joint
+    //     m_GripperJoint = m_UR10e.transform.Find("robot_tool0/gripper_onrobot_rg2_base_link").GetComponent<ArticulationBody>();
+    // }
+
     void Start()
     {
+        Debug.Log("Initializing ROS connection...");
+        
         // Get ROS connection static instance
         m_Ros = ROSConnection.GetOrCreateInstance();
         m_Ros.RegisterRosService<MoverServiceRequest, MoverServiceResponse>(m_RosServiceName);
+        Debug.Log($"ROS Service Name: {m_RosServiceName}");
 
+        Debug.Log("Finding robot joint articulation bodies...");
         m_JointArticulationBodies = new ArticulationBody[k_NumRobotJoints];
 
         var linkName = string.Empty;
         for (var i = 0; i < k_NumRobotJoints; i++)
         {
             linkName += SourceDestinationPublisher.LinkNames[i];
-            m_JointArticulationBodies[i] = m_UR10e.transform.Find(linkName).GetComponent<ArticulationBody>();
+            var articulationBody = m_UR10e.transform.Find(linkName).GetComponent<ArticulationBody>();
+            if (articulationBody != null)
+            {
+                m_JointArticulationBodies[i] = articulationBody;
+                Debug.Log($"Found articulation body for joint {i}: {linkName}");
+            }
+            else
+            {
+                Debug.LogError($"Failed to find articulation body for joint {i}: {linkName}");
+            }
         }
 
         // Find the gripper joint
-        m_GripperJoint = m_UR10e.transform.Find("gripper_onrobot_rg2_base_link/gripper_finger_joint").GetComponent<ArticulationBody>();
+        var gripperJointPath = linkName + "/robot_flange/robot_tool0/gripper_onrobot_rg2_base_link";
+
+        m_GripperJoint = m_UR10e.transform.Find(gripperJointPath)?.GetComponent<ArticulationBody>();
+        if (m_GripperJoint != null)
+        {
+            Debug.Log($"Found gripper joint: {gripperJointPath}");
+        }
+        else
+        {
+            Debug.LogError($"Failed to find gripper joint at path: {gripperJointPath}");
+        }
+
+        Debug.Log($"Target GameObject: {m_Target}");
+        Debug.Log($"Target Placement GameObject: {m_TargetPlacement}");
+        Debug.Log($"Pick Orientation: {m_PickOrientation.eulerAngles}");
+        Debug.Log($"Pick Pose Offset: {m_PickPoseOffset}");
     }
+
+
+    
 
     /// <summary>
     ///     Get the current values of the robot's joint angles.
