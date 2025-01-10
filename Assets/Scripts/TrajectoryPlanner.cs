@@ -11,6 +11,7 @@ public class TrajectoryPlanner : MonoBehaviour
 {
     // Hardcoded variables
     const int k_NumRobotJoints = 6;
+    const int k_NumRobotGripperJoints = 4;
     const float k_JointAssignmentWait = 0.1f;
     const float k_PoseAssignmentWait = 0.5f;
 
@@ -35,7 +36,7 @@ public class TrajectoryPlanner : MonoBehaviour
 
     // Articulation Bodies
     ArticulationBody[] m_JointArticulationBodies;
-    ArticulationBody m_GripperJoint;
+    ArticulationBody[] m_GripperJoint;
 
     // ROS Connector
     ROSConnection m_Ros;
@@ -55,11 +56,41 @@ public class TrajectoryPlanner : MonoBehaviour
         for (var i = 0; i < k_NumRobotJoints; i++)
         {
             linkName += SourceDestinationPublisher.LinkNames[i];
-            m_JointArticulationBodies[i] = m_UR10e.transform.Find(linkName).GetComponent<ArticulationBody>();
+            var jointTransform = m_UR10e.transform.Find(linkName);
+            if (jointTransform != null)
+            {
+                m_JointArticulationBodies[i] = jointTransform.GetComponent<ArticulationBody>();
+                if (m_JointArticulationBodies[i] == null)
+                {
+                    Debug.LogError($"ArticulationBody component missing on {linkName}");
+                }
+            }
+            else
+            {
+                Debug.LogError($"Transform not found: {linkName}");
+            }
         }
 
         // Find the gripper joint
-        m_GripperJoint = m_UR10e.transform.Find("gripper_onrobot_rg2_base_link/gripper_finger_joint").GetComponent<ArticulationBody>();
+
+        m_GripperJoint = new ArticulationBody[k_NumRobotGripperJoints];
+
+        for (var i = 0; i < k_NumRobotGripperJoints; i++)
+        {
+            var gripperJointTransform = m_UR10e.transform.Find(SourceDestinationPublisher.GripperPartNames[i]);
+            if (gripperJointTransform != null)
+            {
+                m_GripperJoint[i] = gripperJointTransform.GetComponent<ArticulationBody>();
+                if (m_GripperJoint[i] == null)
+                {
+                    Debug.LogError($"ArticulationBody component missing on {SourceDestinationPublisher.GripperPartNames[i]}");
+                }
+            }
+            else
+            {
+                Debug.LogError($"Transform not found: {SourceDestinationPublisher.GripperPartNames[i]}");
+            }
+        }
     }
 
     /// <summary>
@@ -175,18 +206,24 @@ public class TrajectoryPlanner : MonoBehaviour
     void CloseGripper()
     {
         // Set the target position to close the gripper
-        var drive = m_GripperJoint.xDrive;
-        drive.target = -0.3f; // Adjust this value based on your gripper's range
-        m_GripperJoint.xDrive = drive;
+        foreach (var gripperJoint in m_GripperJoint)
+        {
+            var drive = gripperJoint.xDrive;
+            drive.target = -0.3f; // Adjust this value based on your gripper's range
+            gripperJoint.xDrive = drive;
+        }
         Debug.Log("Closing gripper...");
     }
 
     void OpenGripper()
     {
         // Set the target position to open the gripper
-        var drive = m_GripperJoint.xDrive;
-        drive.target = 0.5f; // Adjust this value based on your gripper's range
-        m_GripperJoint.xDrive = drive;
+        foreach (var gripperJoint in m_GripperJoint)
+        {
+            var drive = gripperJoint.xDrive;
+            drive.target = 0.5f; // Adjust this value based on your gripper's range
+            gripperJoint.xDrive = drive;
+        }
         Debug.Log("Opening gripper...");
     }
 
