@@ -40,28 +40,6 @@ public class TrajectoryPlanner : MonoBehaviour
     // ROS Connector
     ROSConnection m_Ros;
 
-    /// <summary>
-    ///     Find all robot joints in Awake() and add them to the jointArticulationBodies array.
-    /// </summary>
-    // void Start()
-    // {
-    //     // Get ROS connection static instance
-    //     m_Ros = ROSConnection.GetOrCreateInstance();
-    //     m_Ros.RegisterRosService<MoverServiceRequest, MoverServiceResponse>(m_RosServiceName);
-
-    //     m_JointArticulationBodies = new ArticulationBody[k_NumRobotJoints];
-
-    //     var linkName = string.Empty;
-    //     for (var i = 0; i < k_NumRobotJoints; i++)
-    //     {
-    //         linkName += SourceDestinationPublisher.LinkNames[i];
-    //         m_JointArticulationBodies[i] = m_UR10e.transform.Find(linkName).GetComponent<ArticulationBody>();
-    //     }
-
-    //     // Find the gripper joint
-    //     m_GripperJoint = m_UR10e.transform.Find("robot_tool0/gripper_onrobot_rg2_base_link").GetComponent<ArticulationBody>();
-    // }
-
     void Start()
     {
         Debug.Log("Initializing ROS connection...");
@@ -109,9 +87,6 @@ public class TrajectoryPlanner : MonoBehaviour
         Debug.Log($"Pick Pose Offset: {m_PickPoseOffset}");
     }
 
-
-    
-
     /// <summary>
     ///     Get the current values of the robot's joint angles.
     /// </summary>
@@ -143,8 +118,6 @@ public class TrajectoryPlanner : MonoBehaviour
         request.pick_pose = new PoseMsg
         {
             position = (m_Target.transform.position + m_PickPoseOffset).To<FLU>(),
-
-            // The hardcoded y angle assures that the gripper is always positioned to the side of the target cube before grasping.
             orientation = Quaternion.Euler(0, 90, 0).To<FLU>()
         };
 
@@ -155,6 +128,9 @@ public class TrajectoryPlanner : MonoBehaviour
             orientation = m_PickOrientation.To<FLU>()
         };
 
+        Debug.Log("Publishing joints to ROS service...");
+        Debug.Log($"Request: {JsonUtility.ToJson(request)}");
+
         m_Ros.SendServiceMessage<MoverServiceResponse>(m_RosServiceName, request, TrajectoryResponse);
     }
 
@@ -163,6 +139,7 @@ public class TrajectoryPlanner : MonoBehaviour
         if (response.trajectories.Length > 0)
         {
             Debug.Log("Trajectory returned.");
+            Debug.Log($"Response: {JsonUtility.ToJson(response)}");
             StartCoroutine(ExecuteTrajectories(response));
         }
         else
@@ -189,11 +166,15 @@ public class TrajectoryPlanner : MonoBehaviour
             // For every trajectory plan returned
             for (var poseIndex = 0; poseIndex < response.trajectories.Length; poseIndex++)
             {
+                Debug.Log($"Executing trajectory plan {poseIndex}");
+
                 // For every robot pose in trajectory plan
                 foreach (var t in response.trajectories[poseIndex].joint_trajectory.points)
                 {
                     var jointPositions = t.positions;
                     var result = jointPositions.Select(r => (float)r * Mathf.Rad2Deg).ToArray();
+
+                    Debug.Log($"Setting joint positions: {string.Join(", ", result)}");
 
                     // Set the joint values for every joint
                     for (var joint = 0; joint < m_JointArticulationBodies.Length; joint++)
