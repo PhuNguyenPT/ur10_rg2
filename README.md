@@ -49,4 +49,6 @@ Install the following packages through the **Package Manager**:
 -->
 ## Getting Started
 
-[Add your project-specific instructions here]
+Report: https://docs.google.com/document/d/1cANLembC4sc_wJE7-DsNUbX3nWI5OpmqM0Rp1sXXkHU/edit?usp=sharing
+Slides: https://www.canva.com/design/DAGbieQX91A/DxZ4u6W555HDaxEoP35_Pg/edit?utm_content=DAGbieQX91A&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
+Script: https://docs.google.com/document/d/1AokAoBMAW0aBMqUttO_fDm9hHTZbo8rR5gTUk7Yc3Qs/edit?usp=sharing
