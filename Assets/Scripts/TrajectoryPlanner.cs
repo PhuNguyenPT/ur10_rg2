@@ -35,7 +35,6 @@ public class TrajectoryPlanner : MonoBehaviour
 
     // Articulation Bodies
     ArticulationBody[] m_JointArticulationBodies;
-
     ArticulationBody m_LeftGripper;
     ArticulationBody m_RightGripper;
 
