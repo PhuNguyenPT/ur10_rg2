@@ -30,12 +30,14 @@ public class TrajectoryPlanner : MonoBehaviour
     public GameObject TargetPlacement { get => m_TargetPlacement; set => m_TargetPlacement = value; }
 
     // Assures that the gripper is always positioned to the side of the m_Target cube before grasping.
-    readonly Quaternion m_PickOrientation = Quaternion.Euler(0, 90, 0);
-    readonly Vector3 m_PickPoseOffset = Vector3.right * 0.1f;
+    readonly Quaternion m_PickOrientation = Quaternion.Euler(90, 90, 0);
+    readonly Vector3 m_PickPoseOffset = Vector3.up * 0.1f;
 
     // Articulation Bodies
     ArticulationBody[] m_JointArticulationBodies;
-    ArticulationBody m_GripperJoint;
+
+    ArticulationBody m_LeftGripper;
+    ArticulationBody m_RightGripper;
 
     // ROS Connector
     ROSConnection m_Ros;
@@ -71,14 +73,18 @@ public class TrajectoryPlanner : MonoBehaviour
         // Find the gripper joint
         var gripperJointPath = linkName + "/robot_flange/robot_tool0/gripper_onrobot_rg2_base_link";
 
-        m_GripperJoint = m_UR10e.transform.Find(gripperJointPath)?.GetComponent<ArticulationBody>();
-        if (m_GripperJoint != null)
+        var rightGripper = gripperJointPath + "/gripper_right_outer_knuckle";
+        var leftGripper = gripperJointPath + "/gripper_left_outer_knuckle";
+
+        m_RightGripper = m_UR10e.transform.Find(rightGripper).GetComponent<ArticulationBody>();
+        m_LeftGripper = m_UR10e.transform.Find(leftGripper).GetComponent<ArticulationBody>();
+        if (m_RightGripper != null && m_LeftGripper != null)
         {
-            Debug.Log($"Found gripper joint: {gripperJointPath}");
+            Debug.Log($"Found gripper joint: {rightGripper} and {leftGripper}");
         }
         else
         {
-            Debug.LogError($"Failed to find gripper joint at path: {gripperJointPath}");
+            Debug.LogError($"Failed to find gripper joint at path: {rightGripper} and {leftGripper}");
         }
 
         Debug.Log($"Target GameObject: {m_Target}");
@@ -118,7 +124,9 @@ public class TrajectoryPlanner : MonoBehaviour
         request.pick_pose = new PoseMsg
         {
             position = (m_Target.transform.position + m_PickPoseOffset).To<FLU>(),
-            orientation = Quaternion.Euler(0, 90, 0).To<FLU>()
+
+            // The hardcoded x/z angles assure that the gripper is always positioned above the target cube before grasping.
+            orientation = Quaternion.Euler(90, m_Target.transform.eulerAngles.y, 0).To<FLU>()
         };
 
         // Place Pose
@@ -206,18 +214,27 @@ public class TrajectoryPlanner : MonoBehaviour
     void CloseGripper()
     {
         // Set the target position to close the gripper
-        var drive = m_GripperJoint.xDrive;
-        drive.target = -0.3f; // Adjust this value based on your gripper's range
-        m_GripperJoint.xDrive = drive;
+        var leftDrive = m_LeftGripper.xDrive;
+        var rightDrive = m_RightGripper.xDrive;
+
+        leftDrive.target = -0.01f;
+        rightDrive.target = 0.01f;
+
+        m_LeftGripper.xDrive = leftDrive;
+        m_RightGripper.xDrive = rightDrive;
         Debug.Log("Closing gripper...");
     }
 
     void OpenGripper()
     {
-        // Set the target position to open the gripper
-        var drive = m_GripperJoint.xDrive;
-        drive.target = 0.5f; // Adjust this value based on your gripper's range
-        m_GripperJoint.xDrive = drive;
+        var leftDrive = m_LeftGripper.xDrive;
+        var rightDrive = m_RightGripper.xDrive;
+
+        leftDrive.target = 0.01f;
+        rightDrive.target = -0.01f;
+
+        m_LeftGripper.xDrive = leftDrive;
+        m_RightGripper.xDrive = rightDrive;
         Debug.Log("Opening gripper...");
     }
 
