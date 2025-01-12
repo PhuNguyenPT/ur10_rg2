@@ -35,8 +35,8 @@ public class TrajectoryPlanner : MonoBehaviour
 
     // Articulation Bodies
     ArticulationBody[] m_JointArticulationBodies;
-    ArticulationBody m_LeftGripper;
-    ArticulationBody m_RightGripper;
+    ArticulationBody m_LeftOuterGripper;
+    ArticulationBody m_RightOuterGripper;
 
     // ROS Connector
     ROSConnection m_Ros;
@@ -72,18 +72,19 @@ public class TrajectoryPlanner : MonoBehaviour
         // Find the gripper joint
         var gripperJointPath = linkName + "/robot_flange/robot_tool0/gripper_onrobot_rg2_base_link";
 
-        var rightGripper = gripperJointPath + "/gripper_right_outer_knuckle";
-        var leftGripper = gripperJointPath + "/gripper_left_outer_knuckle";
+        var rightOuterGripper = gripperJointPath + "/gripper_right_outer_knuckle/gripper_right_inner_finger";
+        var leftOuterGripper = gripperJointPath + "/gripper_left_outer_knuckle/gripper_left_inner_finger";
 
-        m_RightGripper = m_UR10e.transform.Find(rightGripper).GetComponent<ArticulationBody>();
-        m_LeftGripper = m_UR10e.transform.Find(leftGripper).GetComponent<ArticulationBody>();
-        if (m_RightGripper != null && m_LeftGripper != null)
+        m_RightOuterGripper = m_UR10e.transform.Find(rightOuterGripper).GetComponent<ArticulationBody>();
+        m_LeftOuterGripper = m_UR10e.transform.Find(leftOuterGripper).GetComponent<ArticulationBody>();
+
+        if (m_RightOuterGripper != null && m_LeftOuterGripper != null)
         {
-            Debug.Log($"Found gripper joint: {rightGripper} and {leftGripper}");
+            Debug.Log($"Found gripper joint: {rightOuterGripper} and {leftOuterGripper}");
         }
         else
         {
-            Debug.LogError($"Failed to find gripper joint at path: {rightGripper} and {leftGripper}");
+            Debug.LogError($"Failed to find gripper joint at path: {rightOuterGripper} and {leftOuterGripper}");
         }
 
         Debug.Log($"Target GameObject: {m_Target}");
@@ -213,27 +214,27 @@ public class TrajectoryPlanner : MonoBehaviour
     void CloseGripper()
     {
         // Set the target position to close the gripper
-        var leftDrive = m_LeftGripper.xDrive;
-        var rightDrive = m_RightGripper.xDrive;
+        var leftOuterDrive = m_LeftOuterGripper.xDrive;
+        var rightOuterDrive = m_RightOuterGripper.xDrive;
 
-        leftDrive.target = -0.01f;
-        rightDrive.target = 0.01f;
+        leftOuterDrive.target = Mathf.Clamp(-30.0f, leftOuterDrive.lowerLimit, leftOuterDrive.upperLimit);
+        rightOuterDrive.target = Mathf.Clamp(-30.0f, rightOuterDrive.lowerLimit, rightOuterDrive.upperLimit);
 
-        m_LeftGripper.xDrive = leftDrive;
-        m_RightGripper.xDrive = rightDrive;
+        m_LeftOuterGripper.xDrive = leftOuterDrive;
+        m_RightOuterGripper.xDrive = rightOuterDrive;
         Debug.Log("Closing gripper...");
     }
 
     void OpenGripper()
     {
-        var leftDrive = m_LeftGripper.xDrive;
-        var rightDrive = m_RightGripper.xDrive;
+        var leftOuterDrive = m_LeftOuterGripper.xDrive;
+        var rightOuterDrive = m_RightOuterGripper.xDrive;
 
-        leftDrive.target = 0.01f;
-        rightDrive.target = -0.01f;
+        leftOuterDrive.target = Mathf.Clamp(30.0f, leftOuterDrive.lowerLimit, leftOuterDrive.upperLimit);
+        rightOuterDrive.target = Mathf.Clamp(30.0f, rightOuterDrive.lowerLimit, rightOuterDrive.upperLimit);
 
-        m_LeftGripper.xDrive = leftDrive;
-        m_RightGripper.xDrive = rightDrive;
+        m_LeftOuterGripper.xDrive = leftOuterDrive;
+        m_RightOuterGripper.xDrive = rightOuterDrive;
         Debug.Log("Opening gripper...");
     }
 
