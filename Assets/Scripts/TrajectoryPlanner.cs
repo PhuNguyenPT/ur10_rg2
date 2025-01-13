@@ -86,11 +86,6 @@ public class TrajectoryPlanner : MonoBehaviour
         {
             Debug.LogError($"Failed to find gripper joint at path: {rightOuterGripper} and {leftOuterGripper}");
         }
-
-        Debug.Log($"Target GameObject: {m_Target}");
-        Debug.Log($"Target Placement GameObject: {m_TargetPlacement}");
-        Debug.Log($"Pick Orientation: {m_PickOrientation.eulerAngles}");
-        Debug.Log($"Pick Pose Offset: {m_PickPoseOffset}");
     }
 
     /// <summary>
@@ -128,7 +123,10 @@ public class TrajectoryPlanner : MonoBehaviour
             // The hardcoded x/z angles assure that the gripper is always positioned above the target cube before grasping.
             orientation = Quaternion.Euler(90, m_Target.transform.eulerAngles.y, 0).To<FLU>()
         };
-
+        Debug.Log("Pick Pose:");
+        Debug.Log($"Position - X: {m_Target.transform.position.x + m_PickPoseOffset.x}, Y: {m_Target.transform.position.y + m_PickPoseOffset.y}, Z: {m_Target.transform.position.z + m_PickPoseOffset.z}");
+        Debug.Log($"Orientation - X: 90, Y: {m_Target.transform.eulerAngles.y}, Z: 0");
+        
         // Place Pose
         request.place_pose = new PoseMsg
         {
@@ -136,8 +134,11 @@ public class TrajectoryPlanner : MonoBehaviour
             orientation = m_PickOrientation.To<FLU>()
         };
 
+        Debug.Log("Place Pose:");
+        Debug.Log($"Position - X: {m_TargetPlacement.transform.position.x + m_PickPoseOffset.x}, Y: {m_TargetPlacement.transform.position.y + m_PickPoseOffset.y}, Z: {m_TargetPlacement.transform.position.z + m_PickPoseOffset.z}");
+        Debug.Log($"Orientation - X: {m_PickOrientation.eulerAngles.x}, Y: {m_PickOrientation.eulerAngles.y}, Z: {m_PickOrientation.eulerAngles.z}");
+
         Debug.Log("Publishing joints to ROS service...");
-        Debug.Log($"Request: {JsonUtility.ToJson(request)}");
 
         m_Ros.SendServiceMessage<MoverServiceResponse>(m_RosServiceName, request, TrajectoryResponse);
     }
