@@ -99,6 +99,7 @@ public class TrajectoryPlanner : MonoBehaviour
         for (var i = 0; i < k_NumRobotJoints; i++)
         {
             joints.joints[i] = m_JointArticulationBodies[i].jointPosition[0];
+            Debug.Log($"Joint {i} position: {joints.joints[i]}");
         }
 
         return joints;
@@ -119,14 +120,17 @@ public class TrajectoryPlanner : MonoBehaviour
         request.pick_pose = new PoseMsg
         {
             position = (m_Target.transform.position + m_PickPoseOffset).To<FLU>(),
-
             // The hardcoded x/z angles assure that the gripper is always positioned above the target cube before grasping.
             orientation = Quaternion.Euler(90, m_Target.transform.eulerAngles.y, 0).To<FLU>()
         };
+
         Debug.Log("Pick Pose:");
-        Debug.Log($"Position - X: {m_Target.transform.position.x + m_PickPoseOffset.x}, Y: {m_Target.transform.position.y + m_PickPoseOffset.y}, Z: {m_Target.transform.position.z + m_PickPoseOffset.z}");
-        Debug.Log($"Orientation - X: 90, Y: {m_Target.transform.eulerAngles.y}, Z: 0");
-        
+        Debug.Log($"Unity Target Position: {m_Target.transform.position}");
+        Debug.Log($"Offset: {m_PickPoseOffset}");
+        Debug.Log($"Unity Target Offset Position: {m_Target.transform.position + m_PickPoseOffset}");
+        Debug.Log($"ROS Target Position - X: {request.pick_pose.position.x}, Y: {request.pick_pose.position.y}, Z: {request.pick_pose.position.z}");
+        Debug.Log($"ROS Target Orientation - X: {request.pick_pose.orientation.x}, Y: {request.pick_pose.orientation.y}, Z: {request.pick_pose.orientation.z}, W: {request.pick_pose.orientation.w}");
+
         // Place Pose
         request.place_pose = new PoseMsg
         {
@@ -135,9 +139,14 @@ public class TrajectoryPlanner : MonoBehaviour
         };
 
         Debug.Log("Place Pose:");
-        Debug.Log($"Position - X: {m_TargetPlacement.transform.position.x + m_PickPoseOffset.x}, Y: {m_TargetPlacement.transform.position.y + m_PickPoseOffset.y}, Z: {m_TargetPlacement.transform.position.z + m_PickPoseOffset.z}");
-        Debug.Log($"Orientation - X: {m_PickOrientation.eulerAngles.x}, Y: {m_PickOrientation.eulerAngles.y}, Z: {m_PickOrientation.eulerAngles.z}");
+        Debug.Log($"Unity Placement Position: {m_TargetPlacement.transform.position}");
+        Debug.Log($"Offset: {m_PickPoseOffset}");
+        Debug.Log($"Pick Orientation: x: {m_PickOrientation.x}, y: {m_PickOrientation.y}, z: {m_PickOrientation.z}, w: {m_PickOrientation.w}");
+        Debug.Log($"Unity Placement Offset Position: {m_TargetPlacement.transform.position + m_PickPoseOffset}");
+        Debug.Log($"ROS Placement Position - X: {request.place_pose.position.x}, Y: {request.place_pose.position.y}, Z: {request.place_pose.position.z}");
+        Debug.Log($"ROS Placement Orientation - X: {request.place_pose.orientation.x}, Y: {request.place_pose.orientation.y}, Z: {request.place_pose.orientation.z}, W: {request.place_pose.orientation.w}");
 
+        // Final Step
         Debug.Log("Publishing joints to ROS service...");
 
         m_Ros.SendServiceMessage<MoverServiceResponse>(m_RosServiceName, request, TrajectoryResponse);
@@ -181,9 +190,14 @@ public class TrajectoryPlanner : MonoBehaviour
                 foreach (var t in response.trajectories[poseIndex].joint_trajectory.points)
                 {
                     var jointPositions = t.positions;
+                    // Log the original joint positions in radians
+                    Debug.Log($"Joint positions (radians): {string.Join(", ", jointPositions)}");
+
+                    // Convert joint positions from radians to degrees
                     var result = jointPositions.Select(r => (float)r * Mathf.Rad2Deg).ToArray();
 
-                    Debug.Log($"Setting joint positions: {string.Join(", ", result)}");
+                    // Log the converted joint positions in degrees
+                    Debug.Log($"Joint positions (degrees): {string.Join(", ", result)}");
 
                     // Set the joint values for every joint
                     for (var joint = 0; joint < m_JointArticulationBodies.Length; joint++)
